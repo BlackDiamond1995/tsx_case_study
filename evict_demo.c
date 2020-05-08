@@ -188,7 +188,7 @@ void traverse_rand(int x, int no){
     traverse(addr, size);
 
     close(fd);
-    munmap(addr, size);
+    //munmap(addr, size);
 }
 
 void* lock4G(){
