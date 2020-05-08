@@ -15,8 +15,11 @@
     do { perror(msg); exit(EXIT_FAILURE); } while (0)
 
 char targetfileName[] = "/home/lys/Documents/pagecachefiles/targetfile";
+//char targetfileName[] = "/home/liuweijie/Documents/pagecachefiles/targetfile";
 char evictfileName[] = "/home/lys/Documents/pagecachefiles/evictfile%dG_%d";
+//char evictfileName[] = "/home/liuweijie/Documents/pagecachefiles/evictfile%dG_%d";
 char lockfileName[] = "/home/lys/Documents/pagecachefiles/lockfile";
+//char lockfileName[] = "/home/liuweijie/Documents/pagecachefiles/lockfile";
 
 inline __attribute__((always_inline)) void maccess(volatile void* p)
 {
