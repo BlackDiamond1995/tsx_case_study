@@ -181,7 +181,15 @@ void set1_func(){
 void traverse_rand(int x, int no){
     char dir[50];
     sprintf(dir, evictfileName, x, no);
-    int fd = open(dir, O_RDONLY); 
+    int fd = open(dir, O_RDONLY);
+    if (fd == -1)
+    {
+        printf("%s loading failed\n", dir);
+    }
+    else
+    {
+        printf("%s founded\n", dir);
+    }
     s_t size = (s_t)lseek(fd, 0, SEEK_END);
     s_t pc = size / (4096);
     void* addr = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
@@ -217,10 +225,17 @@ void print_page_state(unsigned char v[], int vl){
 
 void set2_func(){
     sched_yield();
-    int fd_lock = open(lockfileName, O_RDONLY); 
+    int fd_lock = open(lockfileName, O_RDONLY);
+    if (fd == -1)
+    {
+        printf("%s loading failed\n", lockfileName);
+    }
+    else
+    {
+        printf("lock file founded.\n");
+    }
     s_t size_lock = (s_t)lseek(fd_lock, 0, SEEK_END);
     s_t pc_lock = size_lock / (4096);
-    printf("lock file found.\n");
     void* addr_lock = mmap(NULL, size_lock, PROT_READ, MAP_SHARED, fd_lock, 0);
     printf("traversing lock file...\n");
     traverse(addr_lock, size_lock);
@@ -230,6 +245,14 @@ void set2_func(){
 
 
     int fd_target = open(targetfileName, O_RDONLY);
+    if (fd_target == -1)
+    {
+        printf("%s loading failed\n", targetfileName);
+    }
+    else
+    {
+        printf("target file founded.\n");
+    }
     int size_target = (int)lseek(fd_target, 0, SEEK_END);
     int pc_target = size_target / (4096);
     unsigned char v[pc_target];
