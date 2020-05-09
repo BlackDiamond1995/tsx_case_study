@@ -226,7 +226,7 @@ void print_page_state(unsigned char v[], int vl){
 void set2_func(){
     sched_yield();
     int fd_lock = open(lockfileName, O_RDONLY);
-    if (fd == -1)
+    if (fd_lock == -1)
     {
         printf("%s loading failed\n", lockfileName);
     }
