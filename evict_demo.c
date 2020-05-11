@@ -279,7 +279,7 @@ void set2_func(){
 
     int evivt_num = 8;
     for (int i=0; i<evivt_num; i++){
-        traverse_rand(10, i);
+        traverse_rand(1, i);
         mincore(addr_target, size_target, v);
         printf("time now is %ld", time(NULL));
         printf(" No.%d traversed.\n", i);
