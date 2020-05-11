@@ -267,7 +267,7 @@ void set2_func(){
     // fstat(fd_target, &targetfile_stat);
     s_t size_target = (s_t)lseek(fd_target, 0, SEEK_END);
     int pc_target = size_target / (4096);
-    printf("targetfile info: size %ldB pages %d\n", size_target, pc_target);
+    printf("targetfile info: size %lldB pages %d\n", size_target, pc_target);
     unsigned char v[pc_target];
     void* addr_target = mmap(NULL, size_target, PROT_READ, MAP_SHARED, fd_target, 0);
     traverse(addr_target, size_target);
