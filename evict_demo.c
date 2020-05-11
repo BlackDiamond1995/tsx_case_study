@@ -8,6 +8,10 @@
 #include <pthread.h>
 #include <string.h>
 #include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #define s_t unsigned long long
 #define PIDMAX 32786
@@ -140,7 +144,7 @@ void traverse(void* addr, s_t addl){
     if ((long)addr == 0xffffffffffffffff){
         return;
     }
-    for (s_t i=3; i<addl-3; i++){
+    for (s_t i=3; i<addl - 3; i++){
         maccess(addr + i - 3);
         maccess(addr + i - 2);
         maccess(addr + i - 1);
@@ -181,7 +185,7 @@ void set1_func(){
 void traverse_rand(int x, int no){
     char dir[50];
     sprintf(dir, evictfileName, x, no);
-    int fd = open(dir, O_RDONLY);
+    int fd = open(dir, O_RDONLY); 
     if (fd == -1)
     {
         printf("%s loading failed\n", dir);
@@ -196,7 +200,7 @@ void traverse_rand(int x, int no){
     traverse(addr, size);
 
     close(fd);
-    //munmap(addr, size);
+    munmap(addr, size);
 }
 
 void* lock4G(){
@@ -211,16 +215,24 @@ void* lock4G(){
 
 void print_page_state(unsigned char v[], int vl){
     int b = 0;
+    int count = 0;
+    float percent = 0;
     for (int i=0; i<vl; i++){
         if (v[i] == 0)
         {
-            printf("page %d has been evicted\n", v[i]);
-            b = 1;
+            //printf("page %d has been evicted\n", i);
+            count++;
+            //b = 1;
         }
         //printf("%d ", v[i]);
     }
-    if (b == 0)
+    if (count == 0)
         printf("none page has been eviced\n");
+    else
+    {
+        percent = count/vl;
+        printf("%f has been evicted\n", percent);
+    }
 }
 
 void set2_func(){
@@ -237,12 +249,10 @@ void set2_func(){
     s_t size_lock = (s_t)lseek(fd_lock, 0, SEEK_END);
     s_t pc_lock = size_lock / (4096);
     void* addr_lock = mmap(NULL, size_lock, PROT_READ, MAP_SHARED, fd_lock, 0);
-    printf("traversing lock file...\n");
+    printf("traversing lockfile...\n");
     traverse(addr_lock, size_lock);
-    printf("||||||\n");
     mlock(addr_lock, size_lock);
-    printf("2G page locked.\n");
-
+    printf("lockfile locked.\n");
 
     int fd_target = open(targetfileName, O_RDONLY);
     if (fd_target == -1)
@@ -253,8 +263,11 @@ void set2_func(){
     {
         printf("target file founded.\n");
     }
-    int size_target = (int)lseek(fd_target, 0, SEEK_END);
+    // struct stat targetfile_stat;
+    // fstat(fd_target, &targetfile_stat);
+    s_t size_target = (s_t)lseek(fd_target, 0, SEEK_END);
     int pc_target = size_target / (4096);
+    printf("targetfile info: size %ldB pages %d\n", size_target, pc_target);
     unsigned char v[pc_target];
     void* addr_target = mmap(NULL, size_target, PROT_READ, MAP_SHARED, fd_target, 0);
     traverse(addr_target, size_target);
@@ -266,13 +279,13 @@ void set2_func(){
 
     int evivt_num = 8;
     for (int i=0; i<evivt_num; i++){
-        traverse_rand(1, i);
+        traverse_rand(10, i);
         mincore(addr_target, size_target, v);
         printf("time now is %ld", time(NULL));
-        printf("No.%d 1G traversed.\n", i+1);
+        printf(" No.%d traversed.\n", i);
         print_page_state(v, pc_target);
     }
-    
+
     close(fd_target);
     munmap(addr_target, size_target);
 
@@ -305,5 +318,6 @@ int main(){
 ///////////////////////////////////
 
     pthread_exit(NULL);
+    //set2_func();
     return 0;
 }
