@@ -228,32 +228,20 @@ void print_page_state(unsigned char v[], int vl){
     }
     if (count == 0)
         printf("none page has been eviced\n");
+    else if (count == vl)
+    {
+        printf("all pages have been eviced\n");
+        exit(0);
+    }
     else
     {
-        percent = count/vl;
+        percent = (float)count/vl;
         printf("%f has been evicted\n", percent);
     }
 }
 
 void set2_func(){
     sched_yield();
-    int fd_lock = open(lockfileName, O_RDONLY);
-    if (fd_lock == -1)
-    {
-        printf("%s loading failed\n", lockfileName);
-    }
-    else
-    {
-        printf("lock file founded.\n");
-    }
-    s_t size_lock = (s_t)lseek(fd_lock, 0, SEEK_END);
-    s_t pc_lock = size_lock / (4096);
-    void* addr_lock = mmap(NULL, size_lock, PROT_READ, MAP_SHARED, fd_lock, 0);
-    printf("traversing lockfile...\n");
-    traverse(addr_lock, size_lock);
-    mlock(addr_lock, size_lock);
-    printf("lockfile locked.\n");
-
     int fd_target = open(targetfileName, O_RDONLY);
     if (fd_target == -1)
     {
@@ -270,12 +258,30 @@ void set2_func(){
     printf("targetfile info: size %lldB pages %d\n", size_target, pc_target);
     unsigned char v[pc_target];
     void* addr_target = mmap(NULL, size_target, PROT_READ, MAP_SHARED, fd_target, 0);
-    traverse(addr_target, size_target);
+    //traverse(addr_target, size_target);
 
-    printf("initial state:\n");
+    printf("targetfile state:\n");
     mincore(addr_target, size_target, v);
     print_page_state(v, pc_target);
 
+    int fd_lock = open(lockfileName, O_RDONLY);
+    if (fd_lock == -1)
+    {
+        printf("%s loading failed\n", lockfileName);
+    }
+    else
+    {
+        printf("lock file founded.\n");
+    }
+    s_t size_lock = (s_t)lseek(fd_lock, 0, SEEK_END);
+    s_t pc_lock = size_lock / (4096);
+    void* addr_lock = mmap(NULL, size_lock, PROT_READ, MAP_SHARED, fd_lock, 0);
+    printf("traversing lockfile...\n");
+    traverse(addr_lock, size_lock);
+    mlock(addr_lock, size_lock);
+    printf("lockfile locked.\n");
+    mincore(addr_target, size_target, v);
+    print_page_state(v, pc_target);
 
     int evivt_num = 8;
     for (int i=0; i<evivt_num; i++){
