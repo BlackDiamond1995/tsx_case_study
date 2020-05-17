@@ -17,12 +17,14 @@
 #define handle_error(msg) \
     do { perror(msg); exit(EXIT_FAILURE); } while (0)
 
-//char targetfileName[] = "/home/lys/Documents/pagecachefiles/targetfile";
-char targetfileName[] = "/home/liuweijie/Documents/pagecachefiles/targetfile";
+//char targetfileName[] = "/home/lys/Documents/pagecachefiles/targetfile%d";
+char targetfileName[] = "/home/liuweijie/Documents/pagecachefiles/targetfile%d";
 //char evictfileName[] = "/home/lys/Documents/pagecachefiles/evictfile%dG_%d";
 char evictfileName[] = "/home/liuweijie/Documents/pagecachefiles/evictfile%dG_%d";
-//char lockfileName[] = "/home/lys/Documents/pagecachefiles/lockfile";
+//char lockfileName[] = "/home/lys/Documents/pagecachefiles/lockfile20G";
 char lockfileName[] = "/home/liuweijie/Documents/pagecachefiles/lockfile";
+
+int control = 0;
 
 inline __attribute__((always_inline)) void maccess(volatile void* p)
 {
@@ -213,24 +215,19 @@ void* lock4G(){
 }
 
 void print_page_state(unsigned char v[], int vl){
-    int b = 0;
     int count = 0;
     float percent = 0;
     for (int i=0; i<vl; i++){
         if (v[i] == 0)
         {
-            //printf("page %d has been evicted\n", i);
             count++;
-            //b = 1;
         }
-        //printf("%d ", v[i]);
     }
     if (count == 0)
         printf("none page has been eviced\n");
     else if (count == vl)
     {
         printf("all pages have been eviced\n");
-        exit(0);
     }
     else
     {
@@ -239,8 +236,8 @@ void print_page_state(unsigned char v[], int vl){
     }
 }
 
-void set2_func(){
-    sched_yield();
+void get_targetfile(char targetfileName[], s_t* size_target, void** addr_target)
+{
     int fd_target = open(targetfileName, O_RDONLY);
     if (fd_target == -1)
     {
@@ -248,21 +245,50 @@ void set2_func(){
     }
     else
     {
-        printf("target file founded.\n");
+        printf("%s founded\n", targetfileName);
     }
-    // struct stat targetfile_stat;
-    // fstat(fd_target, &targetfile_stat);
-    s_t size_target = (s_t)lseek(fd_target, 0, SEEK_END);
-    int pc_target = size_target / (4096);
+    *size_target = (s_t)lseek(fd_target, 0, SEEK_END);
+    int pc_target = *size_target / (4096);
     printf("targetfile info: size %lldB pages %d\n", size_target, pc_target);
     unsigned char v[pc_target];
-    void* addr_target = mmap(NULL, size_target, PROT_READ, MAP_SHARED, fd_target, 0);
-    //traverse(addr_target, size_target);
+    *addr_target = mmap(NULL, *size_target, PROT_READ, MAP_SHARED, fd_target, 0);
+    return;
+}
 
-    printf("targetfile state:\n");
+void print_targetfile_state(char targetfileName[], s_t size_target, void* addr_target)
+{
+    int pc_target = size_target / (4096);
+    unsigned char v[pc_target];
+    printf("%s state:\n", targetfileName);
     mincore(addr_target, size_target, v);
     print_page_state(v, pc_target);
+}
 
+void set2_func(){
+    sched_yield();
+
+    char targetfileName1[100];
+    sprintf(targetfileName1, targetfileName, 1);
+    char targetfileName2[100];
+    sprintf(targetfileName2, targetfileName, 2);
+    char targetfileName3[100];
+    sprintf(targetfileName3, targetfileName, 3);
+
+    s_t size_target1;
+    void* addr_target1;
+    get_targetfile(targetfileName1, &size_target1, &addr_target1);
+    print_targetfile_state(targetfileName1, size_target1, addr_target1);
+
+    s_t size_target2;
+    void* addr_target2;
+    get_targetfile(targetfileName2, &size_target2, &addr_target2);
+    print_targetfile_state(targetfileName2, size_target2, addr_target2);
+
+    s_t size_target3;
+    void* addr_target3;
+    get_targetfile(targetfileName3, &size_target3, &addr_target3);
+    print_targetfile_state(targetfileName3, size_target3, addr_target3);
+    
     int fd_lock = open(lockfileName, O_RDONLY);
     if (fd_lock == -1)
     {
@@ -279,20 +305,22 @@ void set2_func(){
     traverse(addr_lock, size_lock);
     mlock(addr_lock, size_lock);
     printf("lockfile locked.\n");
-    mincore(addr_target, size_target, v);
-    print_page_state(v, pc_target);
+    print_targetfile_state(targetfileName1, size_target1, addr_target1);
+    print_targetfile_state(targetfileName2, size_target2, addr_target2);
+    print_targetfile_state(targetfileName3, size_target3, addr_target3);
 
     int evivt_num = 8;
     for (int i=0; i<evivt_num; i++){
         traverse_rand(1, i);
-        mincore(addr_target, size_target, v);
-        printf("time now is %ld", time(NULL));
-        printf(" No.%d traversed.\n", i);
-        print_page_state(v, pc_target);
+        printf("evictfile%d traversed.\n", i);
+        print_targetfile_state(targetfileName1, size_target1, addr_target1);
+        print_targetfile_state(targetfileName2, size_target2, addr_target2);
+        print_targetfile_state(targetfileName3, size_target3, addr_target3);
     }
 
-    close(fd_target);
-    munmap(addr_target, size_target);
+    munmap(addr_target1, size_target1);
+    munmap(addr_target2, size_target2);
+    munmap(addr_target3, size_target3);
 
     close(fd_lock);
     munmap(addr_lock, size_lock);
@@ -323,6 +351,5 @@ int main(){
 ///////////////////////////////////
 
     pthread_exit(NULL);
-    //set2_func();
     return 0;
 }

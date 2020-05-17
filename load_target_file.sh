@@ -1,5 +1,5 @@
-pagecacheFilePath="/home/lys/Documents/pagecachefiles"
-#pagecacheFilePath="/home/liuweijie/Documents/pagecachefiles"
+#pagecacheFilePath="/home/lys/Documents/pagecachefiles"
+pagecacheFilePath="/home/liuweijie/Documents/pagecachefiles"
 
 cd $pagecacheFilePath
 
