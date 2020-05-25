@@ -561,14 +561,14 @@ wrapper_by_compiler_sprintf:            # @wrapper_by_compiler_sprintf
 	.globl	targetfileName
 	.p2align	4
 targetfileName:
-	.asciz	"/home/lys/Documents/pagecachefiles/targetfile%d"
+	.asciz	"/home/liuweijie/Documents/pagecachefiles/targetfile%d"
 	.size	targetfileName, 48
 
 	.type	preloadStr,@object      # @preloadStr
 	.globl	preloadStr
 	.p2align	4
 preloadStr:
-	.asciz	"/home/lys/Documents/pagecachefiles/targetfile1"
+	.asciz	"/home/liuweijie/Documents/pagecachefiles/targetfile1"
 	.size	preloadStr, 47
 
 	.type	.L.str,@object          # @.str
