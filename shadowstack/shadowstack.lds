@@ -1,0 +1,7 @@
+SECTIONS
+{
+    .ssblob : {
+        ssStart = .;
+        *(.ssblob)    
+    }
+}

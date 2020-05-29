@@ -1,0 +1,13 @@
+sprintf
+open
+printf
+lseek
+mmap
+traverse
+usleep
+exit
+scanf
+abort
+pthread_join
+pthread_create
+__isoc99_scanf
